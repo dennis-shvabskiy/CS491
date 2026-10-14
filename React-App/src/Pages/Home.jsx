@@ -1,6 +1,6 @@
 import React from 'react';
 import Lottie from 'lottie-react';
-import moods from './assets/moods.json';
+import moods from '../assets/moods.json';
 
 export default function Home() {
   return (
