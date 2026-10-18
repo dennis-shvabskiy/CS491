@@ -1,35 +1,25 @@
-import { BrowserRouter as Router, Routes, Route, Link } from 'react-router-dom';
-import Home from './pages/Home';
-import About from './pages/About';
-import Users from './pages/Users';
 import './App.css'
+import { BrowserRouter as Router, Routes, Route, Link } from 'react-router-dom';
+import { Home } from './pages/Home';
+import { About } from './pages/About';
+import { Users } from './pages/Users';
+import { Layout } from './components/Layout';
 
 function App() {
 
   return (
 
-    <div>
-      <h1>Router Demo</h1>
-      <Router>
-        <ul>
-          <li>
-            <Link to="/">Home</Link>
-          </li>
-          <li>
-            <Link to="/about">About</Link>
-          </li>
-          <li>
-            <Link to="/users">Users</Link>
-          </li>
-        </ul>
 
+      <Router>
         <Routes>
-          <Route path="/" element={<Home />} />
-          <Route path="/about" element={<About />} />
-          <Route path="/users" element={<Users />} />
+          <Route element={<Layout/>}>
+            <Route path="/" element={<Home />} />
+            <Route path="/about" element={<About />} />
+            <Route path="/users" element={<Users />} />
+          </Route>
         </Routes>
       </Router>
-    </div>
+
       
   )
 }
