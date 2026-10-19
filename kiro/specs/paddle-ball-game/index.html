@@ -1,0 +1,240 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Paddle Ball Game</title>
+  <style>
+    html, body {
+      margin: 0;
+      padding: 0;
+      background: #111;
+      height: 100%;
+    }
+    body {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+    /* Task 1: black background for the canvas (overridden by the
+       customized green background on the drawing surface in draw()). */
+    #game {
+      background: #000000;
+      display: block;
+      border: 1px solid #444;
+    }
+  </style>
+</head>
+<body>
+  <!-- Task 1: canvas element sized to 600x300 -->
+  <canvas id="game" width="600" height="300"></canvas>
+
+  <script>
+    // ----- Setup -----
+    const canvas = document.getElementById("game");
+
+    // Error handling: make sure the canvas exists before doing anything.
+    if (!canvas || !canvas.getContext) {
+      throw new Error("Canvas not supported or not found.");
+    }
+    const ctx = canvas.getContext("2d");
+
+    const WIDTH = canvas.width;   // 600
+    const HEIGHT = canvas.height; // 300
+
+    // ----- Customization settings (from tasks.md) -----
+    const BALL_COLOR = "red";
+    const PADDLE_COLOR = "navy";
+    const BACKGROUND_COLOR = "green";
+
+    const AI_DIFFICULTY = 0.5;  // easy: fraction of the gap the AI closes each frame
+    const BALL_SPEED = 4;       // normal
+    const PADDLE_SPEED = 5;     // normal
+
+    const PADDLE_WIDTH = 10;    // normal
+    const PADDLE_HEIGHT = 80;   // normal
+
+    const BALL_RADIUS = 7;
+    const PADDLE_MARGIN = 10;   // distance of each paddle from its side wall
+
+    // ----- Task 2: game variables and initialization -----
+    // Ball: x, y position and dx, dy speed.
+    let ballX, ballY, ballDX, ballDY;
+
+    // Paddles: vertical positions (top edge of each paddle).
+    let leftY = (HEIGHT - PADDLE_HEIGHT) / 2;   // computer controlled
+    let rightY = (HEIGHT - PADDLE_HEIGHT) / 2;  // player controlled
+
+    // Scoreboard.
+    let playerScore = 0;
+    let computerScore = 0;
+
+    // Reset the ball to the center with a random direction.
+    function resetBall() {
+      ballX = WIDTH / 2;
+      ballY = HEIGHT / 2;
+      // Random horizontal direction (left or right).
+      const dirX = Math.random() < 0.5 ? -1 : 1;
+      // Random vertical direction with a small random component.
+      const dirY = Math.random() < 0.5 ? -1 : 1;
+      ballDX = dirX * BALL_SPEED;
+      ballDY = dirY * (BALL_SPEED * (0.4 + Math.random() * 0.6));
+    }
+
+    resetBall();
+
+    // ----- Task 5: player input handling -----
+    const keys = { up: false, down: false };
+
+    document.addEventListener("keydown", function (event) {
+      if (event.key === "ArrowUp") {
+        keys.up = true;
+        event.preventDefault(); // stop the page from scrolling
+      } else if (event.key === "ArrowDown") {
+        keys.down = true;
+        event.preventDefault();
+      }
+    });
+
+    document.addEventListener("keyup", function (event) {
+      if (event.key === "ArrowUp") {
+        keys.up = false;
+        event.preventDefault();
+      } else if (event.key === "ArrowDown") {
+        keys.down = false;
+        event.preventDefault();
+      }
+    });
+
+    // Keep a paddle's top edge within the canvas bounds.
+    function clampPaddle(y) {
+      if (y < 0) return 0;
+      if (y > HEIGHT - PADDLE_HEIGHT) return HEIGHT - PADDLE_HEIGHT;
+      return y;
+    }
+
+    // ----- Task 4 & 6: update (movement, AI, collisions) -----
+    function update() {
+      // Move the ball.
+      ballX += ballDX;
+      ballY += ballDY;
+
+      // Task 4: bounce off top/bottom walls (reverse dy).
+      if (ballY - BALL_RADIUS <= 0) {
+        ballY = BALL_RADIUS;
+        ballDY = Math.abs(ballDY);
+      } else if (ballY + BALL_RADIUS >= HEIGHT) {
+        ballY = HEIGHT - BALL_RADIUS;
+        ballDY = -Math.abs(ballDY);
+      }
+
+      // Task 5: move the player's (right) paddle.
+      if (keys.up) rightY -= PADDLE_SPEED;
+      if (keys.down) rightY += PADDLE_SPEED;
+      rightY = clampPaddle(rightY);
+
+      // Task 6: AI for the left paddle — follow the ball's Y with smoothing
+      // so it stays beatable. AI_DIFFICULTY controls how fast it closes in.
+      const paddleCenter = leftY + PADDLE_HEIGHT / 2;
+      const diff = ballY - paddleCenter;
+      let move = diff * AI_DIFFICULTY;
+      // Cap the AI paddle's speed so it can't teleport.
+      if (move > PADDLE_SPEED) move = PADDLE_SPEED;
+      if (move < -PADDLE_SPEED) move = -PADDLE_SPEED;
+      leftY = clampPaddle(leftY + move);
+
+      // Task 4: paddle collision.
+      const leftPaddleX = PADDLE_MARGIN;
+      const rightPaddleX = WIDTH - PADDLE_MARGIN - PADDLE_WIDTH;
+
+      // Left paddle (ball moving left).
+      if (
+        ballDX < 0 &&
+        ballX - BALL_RADIUS <= leftPaddleX + PADDLE_WIDTH &&
+        ballX - BALL_RADIUS >= leftPaddleX &&
+        ballY >= leftY &&
+        ballY <= leftY + PADDLE_HEIGHT
+      ) {
+        ballX = leftPaddleX + PADDLE_WIDTH + BALL_RADIUS;
+        ballDX = Math.abs(ballDX); // reverse horizontal direction
+      }
+
+      // Right paddle (ball moving right).
+      if (
+        ballDX > 0 &&
+        ballX + BALL_RADIUS >= rightPaddleX &&
+        ballX + BALL_RADIUS <= rightPaddleX + PADDLE_WIDTH &&
+        ballY >= rightY &&
+        ballY <= rightY + PADDLE_HEIGHT
+      ) {
+        ballX = rightPaddleX - BALL_RADIUS;
+        ballDX = -Math.abs(ballDX); // reverse horizontal direction
+      }
+
+      // Task 4: reset when the ball goes off the left or right edge.
+      if (ballX + BALL_RADIUS < 0) {
+        // Ball passed the player's... left edge: computer... player scores? 
+        // Left edge missed => point for player (right side).
+        playerScore++;
+        resetBall();
+      } else if (ballX - BALL_RADIUS > WIDTH) {
+        // Right edge missed => point for computer (left side).
+        computerScore++;
+        resetBall();
+      }
+    }
+
+    // ----- Task 3 & 8: drawing -----
+    function draw() {
+      // Customized background.
+      ctx.fillStyle = BACKGROUND_COLOR;
+      ctx.fillRect(0, 0, WIDTH, HEIGHT);
+
+      // Center dashed line (simple visual touch).
+      ctx.strokeStyle = "rgba(255,255,255,0.4)";
+      ctx.setLineDash([6, 8]);
+      ctx.beginPath();
+      ctx.moveTo(WIDTH / 2, 0);
+      ctx.lineTo(WIDTH / 2, HEIGHT);
+      ctx.stroke();
+      ctx.setLineDash([]);
+
+      // Paddles (customized color).
+      ctx.fillStyle = PADDLE_COLOR;
+      ctx.fillRect(PADDLE_MARGIN, leftY, PADDLE_WIDTH, PADDLE_HEIGHT);
+      ctx.fillRect(
+        WIDTH - PADDLE_MARGIN - PADDLE_WIDTH,
+        rightY,
+        PADDLE_WIDTH,
+        PADDLE_HEIGHT
+      );
+
+      // Ball (customized color).
+      ctx.fillStyle = BALL_COLOR;
+      ctx.beginPath();
+      ctx.arc(ballX, ballY, BALL_RADIUS, 0, Math.PI * 2);
+      ctx.fill();
+
+      // Task 8: scoreboard — "Player: 0 | Computer: 0", top-center.
+      ctx.fillStyle = "white";
+      ctx.font = "16px monospace";
+      ctx.textAlign = "center";
+      ctx.textBaseline = "top";
+      ctx.fillText(
+        "Player: " + playerScore + " | Computer: " + computerScore,
+        WIDTH / 2,
+        8
+      );
+    }
+
+    // ----- Task 7: game loop -----
+    function gameLoop() {
+      update();
+      draw();
+    }
+
+    // Run continuously at ~60 FPS (16ms intervals) without user intervention.
+    setInterval(gameLoop, 16);
+  </script>
+</body>
+</html>
