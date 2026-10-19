@@ -1,0 +1,130 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>My Productivity Dashboard</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link
+    href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap"
+    rel="stylesheet"
+  />
+  <link rel="stylesheet" href="styles.css" />
+</head>
+<body>
+  <div class="app">
+    <header class="header">
+      <div>
+        <h1 id="greeting">Hello 👋</h1>
+        <p id="today" class="muted"></p>
+      </div>
+      <div class="clock" id="clock">--:--</div>
+    </header>
+
+    <main class="grid">
+      <!-- Motivation quote -->
+      <section class="card quote-card" aria-label="Daily motivation">
+        <div class="card-label">Daily Motivation</div>
+        <blockquote id="quote-text">Loading your quote…</blockquote>
+        <cite id="quote-author"></cite>
+        <button id="new-quote" class="ghost-btn">Shuffle quote ↻</button>
+      </section>
+
+      <!-- Weather -->
+      <section class="card weather-card" aria-label="Current weather">
+        <div class="card-label">Current Weather</div>
+        <div id="weather-body" class="weather-body">
+          <p class="muted">Getting your weather…</p>
+        </div>
+        <form id="city-form" class="city-form">
+          <input
+            id="city-input"
+            type="text"
+            placeholder="Search a city…"
+            autocomplete="off"
+          />
+          <button type="submit">Go</button>
+        </form>
+      </section>
+
+      <!-- Pomodoro timer -->
+      <section class="card pomodoro-card" aria-label="Pomodoro timer">
+        <div class="card-label">
+          Pomodoro Timer
+          <span id="pomo-mode-badge" class="mode-badge focus">Focus</span>
+        </div>
+
+        <div class="pomo-display">
+          <div id="pomo-time" class="pomo-time">25:00</div>
+          <div id="pomo-round" class="pomo-round muted">Round 1 · 0 completed</div>
+        </div>
+
+        <div class="pomo-ring-track">
+          <div id="pomo-ring" class="pomo-ring-bar" style="width: 0%"></div>
+        </div>
+
+        <div class="pomo-controls">
+          <button id="pomo-start" type="button">Start</button>
+          <button id="pomo-reset" type="button" class="ghost-btn pomo-reset">Reset</button>
+          <button id="pomo-skip" type="button" class="ghost-btn pomo-reset">Skip</button>
+        </div>
+
+        <div class="pomo-settings">
+          <label>Focus
+            <input id="pomo-focus-min" type="number" min="1" max="120" value="25" />
+          </label>
+          <label>Break
+            <input id="pomo-break-min" type="number" min="1" max="60" value="5" />
+          </label>
+          <button id="pomo-notify" type="button" class="ghost-btn">Enable notifications 🔔</button>
+        </div>
+
+        <!-- Cat fact break -->
+        <div id="cat-fact" class="cat-fact" hidden>
+          <span class="cat-emoji">🐱</span>
+          <p id="cat-fact-text" class="cat-fact-text">Fetching a cat fact…</p>
+          <button id="cat-fact-new" type="button" class="ghost-btn">Another fact ↻</button>
+        </div>
+      </section>
+
+      <!-- Task tracker -->
+      <section class="card tasks-card" aria-label="Task tracker">
+        <div class="card-label">Task Tracker</div>
+
+        <div class="progress-wrap">
+          <div class="progress-meta">
+            <span id="progress-count">0 of 0 done</span>
+            <span id="progress-pct">0%</span>
+          </div>
+          <div class="progress-track">
+            <div id="progress-bar" class="progress-bar" style="width: 0%"></div>
+          </div>
+        </div>
+
+        <form id="task-form" class="task-form">
+          <input
+            id="task-input"
+            type="text"
+            placeholder="Add a task and press Enter…"
+            autocomplete="off"
+          />
+          <button type="submit">Add</button>
+        </form>
+
+        <ul id="task-list" class="task-list"></ul>
+        <p id="empty-state" class="muted empty-state">No tasks yet. Add one above to get rolling.</p>
+      </section>
+    </main>
+
+    <footer class="footer muted">
+      Data stays on this device. Weather by
+      <a href="https://open-meteo.com/" target="_blank" rel="noopener">Open-Meteo</a>,
+      cat facts by
+      <a href="https://catfact.ninja/" target="_blank" rel="noopener">catfact.ninja</a>.
+    </footer>
+  </div>
+
+  <script src="app.js"></script>
+</body>
+</html>
